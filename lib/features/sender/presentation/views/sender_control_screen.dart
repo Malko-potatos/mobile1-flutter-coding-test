@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile1_flutter_coding_test/features/sender/presentation/constants/constants.dart';
@@ -26,7 +25,8 @@ class _SenderControlScreenState extends ConsumerState<SenderControlScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           _viewModel = ref.read(senderViewModelProvider.notifier);
-          debugPrint('[SenderControlScreen] Starting sending to IP: ${_viewModel?.targetIp}');
+          debugPrint(
+              '[SenderControlScreen] Starting sending to IP: ${_viewModel?.targetIp}');
           _viewModel?.startSending();
         }
       });
@@ -43,7 +43,7 @@ class _SenderControlScreenState extends ConsumerState<SenderControlScreen> {
   void _onStop() {
     // 먼저 전송 중지 (provider가 dispose되기 전에)
     _viewModel?.stopSending();
-    
+
     // 다음 프레임에서 navigation 수행 (현재 프레임이 완전히 끝난 후)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -76,6 +76,41 @@ class _SenderControlScreenState extends ConsumerState<SenderControlScreen> {
             const SizedBox(height: SenderControlScreenConstants.spacing),
             DisconnectButton(onPressed: _onStop),
           ],
+        ),
+      ),
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: SenderControlScreenConstants.padding,
+          vertical: SenderControlScreenConstants.textSpacing,
+        ),
+        decoration: BoxDecoration(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 4,
+              offset: const Offset(0, -2),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.wifi,
+                size: 16,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                viewModel.targetIp.isEmpty
+                    ? 'Not connected'
+                    : 'Connected to ${viewModel.targetIp}',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
+          ),
         ),
       ),
     );
