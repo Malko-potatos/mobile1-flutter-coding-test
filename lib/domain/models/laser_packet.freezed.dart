@@ -14,8 +14,15 @@ T _$identity<T>(T value) => value;
 
 /// @nodoc
 mixin _$LaserPacket {
-  double get x; // X축 변화량 (Delta) 또는 좌표
-  double get y; // Y축 변화량 (Delta) 또는 좌표
+  /// X축 이동 변화량 또는 좌표입니다.
+  double get x;
+
+  /// Y축 이동 변화량 또는 좌표입니다.
+  double get y;
+
+  /// 클릭 동작이 현재 활성화되어 있는지 여부입니다.
+  ///
+  /// 지정되지 않은 경우 `false`로 기본값이 설정됩니다.
   bool get c;
 
   /// Create a copy of LaserPacket
@@ -254,12 +261,17 @@ class _LaserPacket implements LaserPacket {
   factory _LaserPacket.fromJson(Map<String, dynamic> json) =>
       _$LaserPacketFromJson(json);
 
+  /// X축 이동 변화량 또는 좌표입니다.
   @override
   final double x;
-// X축 변화량 (Delta) 또는 좌표
+
+  /// Y축 이동 변화량 또는 좌표입니다.
   @override
   final double y;
-// Y축 변화량 (Delta) 또는 좌표
+
+  /// 클릭 동작이 현재 활성화되어 있는지 여부입니다.
+  ///
+  /// 지정되지 않은 경우 `false`로 기본값이 설정됩니다.
   @override
   @JsonKey()
   final bool c;

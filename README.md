@@ -70,25 +70,67 @@ UDP 통신에 사용할 공통 데이터 모델 구현
 
 #### Story 3: Receiver (PC) 기능 구현
 
-데스크톱 수신기 기능 구현
+데스크톱 수신기 기능 및 자동 연결 로직 구현
 
 ##### Check List
 
-[V] UDP 소켓 바인딩 및 패킷 수신 로직 구현
-- ReceiverRepository 구현
-- 패킷 스트림 처리
+[V] UDP 소켓 바인딩 및 패킷 수신 로직 구현 (ReceiverRepository)
 
-[V] 수신기 화면 UI 구현
-- 투명 윈도우 설정
-- 레이저 포인터 렌더링
-- 상태별 테두리 표시 (녹색: 대기중, 빨강: 수신중)
+[V] 수신 상태 관리 및 자동 연결/해제 로직 (Timeout Timer 적용)
 
-[V] Click-through 이벤트 처리
-- 배경 뒤 프로그램에 마우스 이벤트 전달
+[V] 투명 윈도우 오버레이 구현 (Always-on-top, Click-through)
 
-[ ] ~~종료 버튼 구현~~ (이벤트 through 이슈로 인해 Sender에서 구현 예정)
+[V] 수신 데이터 시각화 (좌표 매핑 및 레이저 포인터 렌더링)
 
 ---
+
+#### Story 4: Sender (Mobile) 기능 구현
+
+모바일 센서 데이터 처리 및 전송 로직 구현
+
+##### Check List
+
+[V] UDP 패킷 전송 로직 구현 (SenderRepository)
+
+[V] 자이로스코프(Gyroscope) 센서 연동 및 좌표 데이터 가공
+
+[V] 제어 화면(Control Screen) UI 구현 (터치패드 및 연결 제어)
+
+[V] 생명주기 관리 (화면 진입/이탈 시 전송 자동 제어)
+
+---
+
+#### Story 5: 연결 편의성 및 멀티 모니터 지원
+
+QR 코드 연결 및 듀얼 모니터 환경 대응을 위한 UX 개선
+
+##### Check List
+
+[V] 앱 실행 흐름 재설계 (Setup 화면 -> Control/Overlay 화면 분리)
+
+[V] [PC] 설정 마법사 구현
+- 현재 IP QR코드 생성 및 표시 (qr_flutter)
+- 다중 모니터 감지 및 대상 디스플레이 선택 (screen_retriever)
+
+[V] [Mobile] 간편 연결 구현
+- QR 코드 스캐너 연동 (mobile_scanner)
+- IP 자동 입력 및 즉시 연결
+
+---
+
+#### Story 6: 코드 리팩토링 및 안정성 확보
+
+유지보수성 향상을 위한 최신 문법 적용 및 구조 개선
+
+##### Check List
+
+[V] State Management 고도화 (Riverpod 3.0 Generator 문법 적용)
+
+[V] 컴포넌트 분리 및 모듈화 (Setup / Overlay / Control)
+
+[V] 전역 에러 핸들링 및 Custom Exception 구조 수립
+
+[V] Dart 3.x 최신 문법 적용 (Records, Patterns, Modifiers)
 
 ## 요구사항 문서
 
