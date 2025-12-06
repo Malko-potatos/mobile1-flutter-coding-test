@@ -30,7 +30,9 @@ class LaserPointer extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          Align(
+          AnimatedAlign(
+            duration: const Duration(milliseconds: 60),
+            curve: Curves.linear,
             alignment: Alignment(packet.x, packet.y),
             child: Container(
               width: size,

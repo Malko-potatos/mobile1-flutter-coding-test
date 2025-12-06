@@ -25,6 +25,10 @@ class SenderViewModel extends _$SenderViewModel {
   double _currentX = SenderViewModelConstants.initialPosition;
   double _currentY = SenderViewModelConstants.initialPosition;
 
+  // 패킷 전송 쓰로틀링을 위한 변수
+  DateTime _lastPacketTime = DateTime.fromMillisecondsSinceEpoch(0);
+  static const Duration _throttleDuration = Duration(milliseconds: 16); // ~60Hz
+
   @override
   bool build() {
     _repository = ref.read(senderRepositoryProvider);
@@ -77,7 +81,10 @@ class SenderViewModel extends _$SenderViewModel {
 
     // 자이로스코프 이벤트 구독
     // gyroscopeEventStream은 rad/s 단위의 회전 속도를 반환합니다.
-    _sensorSubscription = gyroscopeEventStream().listen(
+    // SensorInterval.gameInterval (약 20ms/50Hz) 사용으로 부드러운 움직임 확보
+    _sensorSubscription =
+        gyroscopeEventStream(samplingPeriod: SensorInterval.gameInterval)
+            .listen(
       (GyroscopeEvent event) {
         // 구독 중에 provider가 dispose될 수 있으므로 확인
         if (!ref.mounted) {
@@ -86,7 +93,13 @@ class SenderViewModel extends _$SenderViewModel {
           return;
         }
         _updatePosition(event);
-        _sendPositionPacket();
+
+        // 쓰로틀링 적용: ~60Hz (16ms) 주기로 패킷 전송
+        final now = DateTime.now();
+        if (now.difference(_lastPacketTime) >= _throttleDuration) {
+          _sendPositionPacket();
+          _lastPacketTime = now;
+        }
       },
       onError: (error) {
         debugPrint('[SenderViewModel] Sensor stream error: $error');
@@ -107,6 +120,12 @@ class SenderViewModel extends _$SenderViewModel {
   /// - X축 회전(Pitch)은 Y 이동
   /// 자연스러운 스크롤 선호도에 따라 음수 부호가 필요할 수 있습니다.
   void _updatePosition(GyroscopeEvent event) {
+    // 노이즈 필터링 (Deadzone): 미세한 떨림 무시
+    if (event.x.abs() < SenderViewModelConstants.deadzone &&
+        event.z.abs() < SenderViewModelConstants.deadzone) {
+      return;
+    }
+
     _currentX += -event.z * SenderViewModelConstants.sensitivity;
     _currentY += -event.x * SenderViewModelConstants.sensitivity;
 
