@@ -64,11 +64,13 @@ sequenceDiagram
 
 **FUNC-R-02 (Overlay)**: 윈도우 속성을 `CheckAlwaysOnTop`으로 설정하여 다른 창 위에 표시한다.
 
-**FUNC-R-03 (Interaction)**: `setIgnoreMouseEvents(true)`를 호출하여 마우스 이벤트가 투명 영역을 통과하여 뒤쪽 앱에 전달되도록 한다.
+**FUNC-R-03 (Interaction)**: `setIgnoreMouseEvents(true)`를 호출하여 마우스 이벤트가 투명 영역을 통과하여 뒤쪽 앱에 전달되도록 한다. 이를 통해 배경 뒤의 프로그램이 마우스 클릭, 이동 등 모든 이벤트를 정상적으로 수신받을 수 있어야 한다.
 
 **FUNC-R-04 (Rendering)**: 수신된 `dx`, `dy` 값을 누적하여 현재 화면 해상도(`Screen.size`) 내의 절대 좌표 `(x, y)`로 변환하고 `Stack` 위젯 내 `Positioned`로 포인터를 그린다.
 
 **FUNC-R-05 (QR Code Generation)**: `qr_flutter` 또는 `qr_code` 패키지를 사용하여 현재 PC의 IP 주소와 포트(50000) 정보를 포함한 QR 코드를 생성하고 화면에 표시한다. QR 코드 형식은 JSON 문자열로 `{"ip": "192.168.0.1", "port": 50000}` 형태를 사용한다.
+
+**FUNC-R-06 (Exit Button)**: 사용자가 애플리케이션을 종료할 수 있는 종료 버튼을 제공한다. 종료 버튼은 항상 접근 가능한 위치에 배치되어야 하며, 클릭 시 애플리케이션이 안전하게 종료되어야 한다.
 
 ## 4. 예외 처리 (Error Handling)
 

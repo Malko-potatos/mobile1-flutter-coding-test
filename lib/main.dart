@@ -28,6 +28,7 @@ void main() async {
     await windowManager.waitUntilReadyToShow(windowOptions, () async {
       await windowManager.setAlwaysOnTop(true);
       await windowManager.setFullScreen(true);
+      await windowManager.setIgnoreMouseEvents(true);
       await windowManager.show();
       await windowManager.focus();
     });

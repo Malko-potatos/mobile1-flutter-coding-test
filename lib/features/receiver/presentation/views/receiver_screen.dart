@@ -16,55 +16,72 @@ class ReceiverScreen extends ConsumerWidget {
     final packetAsync = ref.watch(receiverViewModelProvider);
 
     return Scaffold(
-      backgroundColor: Colors.transparent, // Essential for transparency
-      body: packetAsync.when(
-        data: (packet) {
-          // TODO: packet.x, packet.y는 0.0~1.0 정규화된 좌표라 가정하고 화면 크기에 매핑해야 함.
-
-          return Stack(
-            children: [
-              // Debug Info (Optional)
-              Positioned(
-                top: 50,
-                left: 50,
-                child: Text(
-                  'X: ${packet.x.toStringAsFixed(2)}, Y: ${packet.y.toStringAsFixed(2)}',
-                  style: const TextStyle(color: Colors.red, fontSize: 20),
-                ),
-              ),
-              // Laser Pointer Visual
-              // Note: Actual positioning logic requires Screen Size calculation
-              Align(
-                alignment: Alignment(
-                    packet.x, packet.y), // 임시: Alignment 사용 (-1.0 ~ 1.0)
-                child: Container(
-                  width: 20,
-                  height: 20,
-                  decoration: BoxDecoration(
-                    color: packet.c
-                        ? Colors.red
-                        : Colors.red.withValues(alpha: 0.5),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.red.withValues(alpha: 0.8),
-                        blurRadius: 10,
-                        spreadRadius: 2,
-                      )
-                    ],
+      backgroundColor: Colors.transparent,
+      body: Container(
+        // [시각화] 앱이 실행 중임을 알리는 테두리 (녹색: 대기중, 빨강: 수신중)
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: packetAsync.hasValue
+                ? Colors.red.withValues(alpha: 0.5)
+                : Colors.green.withValues(alpha: 0.5),
+            width: 4.0, // 테두리 두께
+          ),
+        ),
+        child: packetAsync.when(
+          data: (packet) {
+            return Stack(
+              children: [
+                // 좌표 디버깅 정보 (Click-through 상태라 드래그/복사 불가, 눈으로만 확인)
+                Positioned(
+                  top: 50,
+                  left: 50,
+                  child: Text(
+                    'Connected\nX: ${packet.x.toStringAsFixed(2)}\nY: ${packet.y.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      color: Colors.red,
+                      fontWeight: FontWeight.bold,
+                      shadows: [Shadow(color: Colors.black, blurRadius: 2)],
+                    ),
                   ),
                 ),
+                // 레이저 포인터
+                Align(
+                  // Alignment 좌표계: (-1.0 ~ 1.0)
+                  alignment: Alignment(packet.x, packet.y),
+                  child: Container(
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      color: packet.c
+                          ? Colors.red
+                          : Colors.red.withValues(alpha: 0.5),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.red.withValues(alpha: 0.8),
+                          blurRadius: 10,
+                          spreadRadius: 2,
+                        )
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+          error: (err, stack) => Center(
+              child: Text('Error: $err',
+                  style: const TextStyle(color: Colors.red))),
+          loading: () => const Center(
+            child: Text(
+              'Waiting for Sender...',
+              style: TextStyle(
+                color: Colors.green,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                shadows: [Shadow(color: Colors.black, blurRadius: 2)],
               ),
-            ],
-          );
-        },
-        error: (err, stack) => Center(
-            child:
-                Text('Error: $err', style: const TextStyle(color: Colors.red))),
-        loading: () => const Center(
-          child: Text(
-            'Waiting for Sender...',
-            style: TextStyle(color: Colors.grey, fontSize: 24),
+            ),
           ),
         ),
       ),

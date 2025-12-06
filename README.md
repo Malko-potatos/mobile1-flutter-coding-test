@@ -49,7 +49,44 @@ graph LR
 
 [V] Feature-First 폴더 구조(Core, Domain, Features) 세팅
 
-[ ] GoRouter를 활용한 플랫폼별(Mobile vs Desktop) 진입점 분기 구현
+[V] GoRouter를 활용한 플랫폼별(Mobile vs Desktop) 진입점 분기 구현
+
+---
+
+#### Story 2: UDP 통신을 위한 공통 데이터 모델 (LaserPacket) 구현
+
+UDP 통신에 사용할 공통 데이터 모델 구현
+
+##### Check List
+
+[V] LaserPacket 모델 정의 (Freezed + JSON 직렬화)
+- X, Y 좌표 필드
+- 클릭 상태 필드
+- JSON 직렬화/역직렬화 지원
+
+[V] 코드 생성 설정 및 실행
+
+---
+
+#### Story 3: Receiver (PC) 기능 구현
+
+데스크톱 수신기 기능 구현
+
+##### Check List
+
+[V] UDP 소켓 바인딩 및 패킷 수신 로직 구현
+- ReceiverRepository 구현
+- 패킷 스트림 처리
+
+[V] 수신기 화면 UI 구현
+- 투명 윈도우 설정
+- 레이저 포인터 렌더링
+- 상태별 테두리 표시 (녹색: 대기중, 빨강: 수신중)
+
+[V] Click-through 이벤트 처리
+- 배경 뒤 프로그램에 마우스 이벤트 전달
+
+[ ] ~~종료 버튼 구현~~ (이벤트 through 이슈로 인해 Sender에서 구현 예정)
 
 ---
 
