@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile1_flutter_coding_test/features/sender/presentation/constants/constants.dart';
@@ -41,13 +41,18 @@ class _SenderSetupScreenState extends ConsumerState<SenderSetupScreen> {
 
     debugPrint('[SenderSetupScreen] Connecting to IP: $ip');
     
-    // IP 저장 및 제어 화면으로 이동
-    ref.read(senderViewModelProvider.notifier).setTargetIp(ip);
+    // IP 저장 및 전송 시작
+    final viewModel = ref.read(senderViewModelProvider.notifier);
+    viewModel.setTargetIp(ip);
     
     // IP가 제대로 설정되었는지 확인
-    final viewModel = ref.read(senderViewModelProvider.notifier);
     debugPrint('[SenderSetupScreen] Target IP set to: ${viewModel.targetIp}');
     
+    // 전송 시작 (Router redirect와 별개로, 즉시 제어 화면으로 이동)
+    viewModel.startSending();
+
+    // UX 향상을 위해 바로 제어 화면으로 이동
+    // (연결 상태 기반 redirect는 비정상 진입을 방어하는 용도로 유지)
     context.go('/sender/control');
   }
 

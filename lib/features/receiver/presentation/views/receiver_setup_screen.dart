@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:screen_retriever/screen_retriever.dart';
 import 'package:window_manager/window_manager.dart';
+import 'package:mobile1_flutter_coding_test/core/connection/connection_state_provider.dart';
 import 'package:mobile1_flutter_coding_test/core/constants/app_constants.dart';
 import 'package:mobile1_flutter_coding_test/core/theme/app_theme.dart';
 import 'package:mobile1_flutter_coding_test/features/receiver/presentation/constants/constants.dart';
@@ -134,63 +135,11 @@ class _ReceiverSetupScreenState extends ConsumerState<ReceiverSetupScreen> {
     }
   }
 
-  /// 선택된 모니터에서 오버레이 모드 시작
-  Future<void> _startOverlay() async {
-    if (_selectedDisplay == null) return;
-
-    // 선택된 모니터의 좌표와 크기
-    final display = _selectedDisplay!;
-    final position = display.visiblePosition ?? Offset.zero;
-
-    // 윈도우를 해당 모니터 영역으로 이동 및 크기 조절
-    await windowManager.setBounds(Rect.fromLTWH(
-      position.dx,
-      position.dy,
-      display.size.width,
-      display.size.height,
-    ));
-
-    // 오버레이 스타일 미리 설정 (ReceiverScreen의 initState보다 먼저 실행되도록)
-    await windowManager.setAlwaysOnTop(true);
-    await windowManager.setHasShadow(false);
-    await windowManager.setBackgroundColor(Colors.transparent);
-    await windowManager.setTitleBarStyle(TitleBarStyle.hidden);
-    await windowManager.setIgnoreMouseEvents(true);
-    await windowManager.setOpacity(1.0);
-
-    // 약간의 지연을 두어 윈도우 설정이 완전히 적용되도록 함
-    await Future.delayed(ReceiverSetupScreenConstants.overlayDelay);
-
-    // 페이지 이동 (Navigator가 locked 상태일 수 있으므로 다음 이벤트 루프에서 수행)
-    if (!mounted) return;
-    Future.microtask(() {
-      if (!mounted) return;
-      final navigatorContext = context;
-      // 추가로 다음 프레임까지 대기
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        navigatorContext.go('/receiver/overlay');
-      });
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    // 현재 연결 상태 확인
+    // 현재 연결 상태 확인 (UI 표시용)
+    final connectionState = ref.watch(connectionStateProvider);
     final receiverState = ref.watch(receiverViewModelProvider);
-
-    // [핵심] ViewModel 상태 감지 리스너
-    ref.listen(receiverViewModelProvider, (previous, next) {
-      debugPrint(
-          '[ReceiverSetupScreen] State changed: prev=${previous?.isConnected}, next=${next.isConnected}');
-      // 연결이 끊겨있다가 -> 연결됨(true) 상태로 바뀌면 오버레이 실행
-      final prevConnected = previous?.isConnected ?? false;
-      if (!prevConnected && next.isConnected) {
-        debugPrint(
-            '[ReceiverSetupScreen] Connection detected, starting overlay');
-        _startOverlay();
-      }
-    });
 
     if (_isLoading) {
       return Scaffold(
@@ -204,11 +153,11 @@ class _ReceiverSetupScreenState extends ConsumerState<ReceiverSetupScreen> {
 
     // 디버깅: 연결 상태 표시
     debugPrint(
-        '[ReceiverSetupScreen] Build: isLoading=$_isLoading, isConnected=${receiverState.isConnected}, hasPacket=${receiverState.packet != null}');
+        '[ReceiverSetupScreen] Build: isLoading=$_isLoading, isConnected=${connectionState.receiverConnected}, hasPacket=${receiverState.packet != null}');
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(receiverState.isConnected
+        title: Text(connectionState.receiverConnected
             ? 'Connected!'
             : 'Waiting for Connection...'),
       ),

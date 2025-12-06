@@ -41,15 +41,11 @@ class _SenderControlScreenState extends ConsumerState<SenderControlScreen> {
   }
 
   void _onStop() {
-    // 먼저 전송 중지 (provider가 dispose되기 전에)
+    // 전송 중지
     _viewModel?.stopSending();
 
-    // 다음 프레임에서 navigation 수행 (현재 프레임이 완전히 끝난 후)
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        context.pop(); // 설정 화면으로 복귀
-      }
-    });
+    // 설정 화면으로 이동
+    context.go('/sender');
   }
 
   @override

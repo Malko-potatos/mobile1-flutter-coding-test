@@ -23,7 +23,9 @@ class QrScannerModal extends StatelessWidget {
             final rawValue = barcode.rawValue;
             if (rawValue != null) {
               onBarcodeDetected(rawValue);
-              Navigator.pop(context);
+              // GoRouter와의 충돌을 피하기 위해, 최상위 페이지를
+              // 강제로 pop하지 않고 가능할 때만 모달을 닫습니다.
+              Navigator.of(context).maybePop();
               break;
             }
           }
