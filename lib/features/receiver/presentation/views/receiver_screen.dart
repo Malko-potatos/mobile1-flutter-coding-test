@@ -99,11 +99,13 @@ class _ReceiverScreenState extends ConsumerState<ReceiverScreen> {
           borderAlpha: ReceiverScreenConstants.borderAlpha,
           child: LaserPointer(
             packet: packet,
+            trails: state.trails,
             size: ReceiverScreenConstants.pointerSize,
             inactiveAlpha: ReceiverScreenConstants.pointerAlpha,
             shadowAlpha: ReceiverScreenConstants.shadowAlpha,
             shadowBlurRadius: ReceiverScreenConstants.shadowBlurRadius,
             shadowSpreadRadius: ReceiverScreenConstants.shadowSpreadRadius,
+            trailDurationMs: ReceiverScreenConstants.trailDurationMs,
           ),
         ),
       ),

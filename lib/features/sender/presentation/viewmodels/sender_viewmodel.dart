@@ -29,6 +29,9 @@ class SenderViewModel extends _$SenderViewModel {
   DateTime _lastPacketTime = DateTime.fromMillisecondsSinceEpoch(0);
   static const Duration _throttleDuration = Duration(milliseconds: 16); // ~60Hz
 
+  // 현재 클릭 상태 (터치 중인지 여부)
+  bool _isClicking = false;
+
   @override
   bool build() {
     _repository = ref.read(senderRepositoryProvider);
@@ -143,7 +146,7 @@ class SenderViewModel extends _$SenderViewModel {
   /// 현재 위치 패킷을 전송합니다.
   void _sendPositionPacket() {
     _repository?.sendPacket(
-      LaserPacket(x: _currentX, y: _currentY, c: false),
+      LaserPacket(x: _currentX, y: _currentY, c: _isClicking),
       _targetIp,
     );
   }
@@ -173,12 +176,14 @@ class SenderViewModel extends _$SenderViewModel {
   /// 클릭 이벤트 패킷을 전송합니다.
   ///
   /// [isClicking]은 버튼 누름 상태를 나타냅니다.
-  /// 센서 스트림이 활성 상태여도 이 메서드는 작동하며,
-  /// 클릭이 현재 좌표로 전송되도록 보장합니다.
+  /// 터치 중일 때는 센서 스트림에서 전송하는 패킷에도 클릭 상태가 포함됩니다.
   void sendClick(bool isClicking) {
     // 대상이 있어야 전송 (센서 스트리밍 중이 아니어도 전송 가능)
     if (_targetIp.isEmpty) return;
 
+    _isClicking = isClicking;
+
+    // 즉시 클릭 상태를 반영한 패킷 전송
     _repository?.sendPacket(
       LaserPacket(x: _currentX, y: _currentY, c: isClicking),
       _targetIp,

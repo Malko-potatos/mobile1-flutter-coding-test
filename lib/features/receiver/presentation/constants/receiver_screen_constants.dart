@@ -13,6 +13,9 @@ class ReceiverScreenConstants {
   static const double shadowBlurRadius = 10.0;
   static const double shadowSpreadRadius = 2.0;
 
+  // 잔상 관련 상수
+  static const int trailDurationMs = 500; // 잔상 지속 시간 (밀리초)
+
   // 윈도우 스타일 상수
   static const Size restoreWindowSize = Size(800, 600);
   static const double windowOpacity = 1.0;
