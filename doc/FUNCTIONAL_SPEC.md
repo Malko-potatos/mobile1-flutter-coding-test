@@ -15,20 +15,21 @@ sequenceDiagram
     participant P as Desktop (Receiver)
 
     Note over M, P: Connection Phase
-    P->>P: UDP Server Bind (Port: 50000)
-    P->>P: Generate QR Code (IP:Port)
+    P->>P: UDP Server Bind (Port: 50051)
+    P->>P: Get Local IP Address
+    P->>P: Generate QR Code (IP Address String)
     P->>P: Display QR Code
     M->>M: Scan QR Code or Input IP
-    M->>M: Parse Connection Info
+    M->>M: Parse IP Address
 
     Note over M, P: Streaming Phase
-    loop 60Hz Sensor Stream
-        M->>M: Read Sensor (Gyro/Accel)
-        M->>M: Noise Filter (Low-pass)
-        M->>N: Send Packet {type: MOVE, x: 10.5, y: -5.2}
+    loop Sensor Stream (Gyroscope)
+        M->>M: Read Gyroscope (rad/s)
+        M->>M: Update Position (Normalized -1.0 ~ 1.0)
+        M->>N: Send Packet {x: 0.5, y: -0.3, c: false}
         N->>P: Receive Packet
-        P->>P: Map Coordinates (Delta -> Screen Offset)
-        P->>P: Render Red Dot (Transparent Overlay)
+        P->>P: Map Coordinates (Normalized -> Screen Alignment)
+        P->>P: Render Orange Dot (Transparent Overlay)
     end
 ```
 
@@ -39,38 +40,44 @@ sequenceDiagram
 
 | 필드명 | 타입 | 설명 | 예시 |
 |--------|------|------|------|
-| type | String | 이벤트 타입 (MOVE, CLICK_DOWN, CLICK_UP) | "MOVE" |
-| dx | Double | X축 변화량 (상대 좌표) | 12.5 |
-| dy | Double | Y축 변화량 (상대 좌표) | -4.3 |
-| ts | Long | 패킷 생성 시간 (Timestamp, 순서 보정용) | 1709452000 |
+| x | Double | X축 절대 좌표 (정규화된 -1.0 ~ 1.0) | 0.5 |
+| y | Double | Y축 절대 좌표 (정규화된 -1.0 ~ 1.0) | -0.3 |
+| c | Boolean | 클릭 상태 (true: 클릭 중, false: 일반) | false |
+
+**좌표 시스템:**
+- 중심점: (0.0, 0.0)
+- 범위: -1.0 ~ 1.0 (정규화된 좌표)
+- PC 화면에서 `Alignment(x, y)`로 매핑되어 절대 위치로 변환됨
 
 ## 3. 상세 기능 명세 (Detailed Functions)
 
 ### 3.1. Sender (Mobile App)
 
-**FUNC-S-01 (Sensor)**: `sensors_plus` 패키지의 `UserAccelerometer` 이벤트를 60Hz 주기로 수집한다.
+**FUNC-S-01 (Sensor)**: `sensors_plus` 패키지의 `gyroscopeEventStream()`을 사용하여 자이로스코프 이벤트를 실시간으로 수집한다. 자이로스코프는 rad/s 단위의 회전 속도를 제공한다.
 
-**FUNC-S-02 (Filtering)**: 손떨림 방지를 위해 이동 평균(Moving Average) 또는 지수 평활(Exponential Smoothing) 필터를 적용한다.
+**FUNC-S-02 (Position Update)**: 자이로스코프 데이터를 기반으로 정규화된 좌표(-1.0 ~ 1.0)를 누적하여 업데이트한다. Z축 회전(Yaw)은 X 이동, X축 회전(Pitch)은 Y 이동으로 매핑된다.
 
-**FUNC-S-03 (Network)**: `RawDatagramSocket`을 사용하여 비연결성 UDP 패킷을 전송한다. 전송 실패 시 재전송하지 않는다 (실시간성 우선).
+**FUNC-S-03 (Network)**: `RawDatagramSocket`을 사용하여 비연결성 UDP 패킷을 전송한다. 전송 실패 시 재전송하지 않는다 (실시간성 우선). 포트 번호는 `AppConstants.port` (50051)을 사용한다.
 
-**FUNC-S-04 (UI)**: 연결 상태(연결됨/끊김)를 시각적으로 표시하고, IP 입력 필드와 연결 버튼을 제공한다.
+**FUNC-S-04 (UI)**: 연결 상태(연결됨/끊김)를 시각적으로 표시하고, IP 입력 필드와 연결 버튼을 제공한다. Rsupport 디자인 시스템(Orange/Navy)을 적용한다.
 
-**FUNC-S-05 (QR Code)**: `mobile_scanner` 또는 `qr_code_scanner` 패키지를 사용하여 PC에서 생성된 QR 코드를 스캔하여 연결 정보(IP 주소, 포트)를 자동으로 획득한다.
+**FUNC-S-05 (QR Code)**: `mobile_scanner` 패키지를 사용하여 PC에서 생성된 QR 코드를 스캔하여 IP 주소를 자동으로 획득한다. QR 코드는 단순 IP 주소 문자열 형식이다.
 
 ### 3.2. Receiver (Desktop App)
 
 **FUNC-R-01 (Window)**: `window_manager`를 사용하여 배경을 투명(`Colors.transparent`)하게 설정하고, 타이틀바를 제거한다.
 
-**FUNC-R-02 (Overlay)**: 윈도우 속성을 `CheckAlwaysOnTop`으로 설정하여 다른 창 위에 표시한다.
+**FUNC-R-02 (Overlay)**: 윈도우 속성을 `setAlwaysOnTop(true)`로 설정하여 다른 창 위에 표시한다.
 
 **FUNC-R-03 (Interaction)**: `setIgnoreMouseEvents(true)`를 호출하여 마우스 이벤트가 투명 영역을 통과하여 뒤쪽 앱에 전달되도록 한다. 이를 통해 배경 뒤의 프로그램이 마우스 클릭, 이동 등 모든 이벤트를 정상적으로 수신받을 수 있어야 한다.
 
-**FUNC-R-04 (Rendering)**: 수신된 `dx`, `dy` 값을 누적하여 현재 화면 해상도(`Screen.size`) 내의 절대 좌표 `(x, y)`로 변환하고 `Stack` 위젯 내 `Positioned`로 포인터를 그린다.
+**FUNC-R-04 (Rendering)**: 수신된 정규화된 좌표 `(x, y)`를 `Alignment(x, y)`로 매핑하여 `Stack` 위젯 내 `Align` 위젯으로 포인터를 렌더링한다. 포인터 색상은 Rsupport Orange (#F37321)를 사용한다.
 
-**FUNC-R-05 (QR Code Generation)**: `qr_flutter` 또는 `qr_code` 패키지를 사용하여 현재 PC의 IP 주소와 포트(50000) 정보를 포함한 QR 코드를 생성하고 화면에 표시한다. QR 코드 형식은 JSON 문자열로 `{"ip": "192.168.0.1", "port": 50000}` 형태를 사용한다.
+**FUNC-R-05 (QR Code Generation)**: `qr_flutter` 패키지를 사용하여 현재 PC의 IP 주소를 포함한 QR 코드를 생성하고 화면에 표시한다. QR 코드는 단순 IP 주소 문자열 형식이다 (예: "192.168.0.1").
 
-**FUNC-R-06 (Exit Button)**: 사용자가 애플리케이션을 종료할 수 있는 종료 버튼을 제공한다. 종료 버튼은 항상 접근 가능한 위치에 배치되어야 하며, 클릭 시 애플리케이션이 안전하게 종료되어야 한다.
+**FUNC-R-06 (Multi-Monitor Support)**: `screen_retriever` 패키지를 사용하여 다중 모니터를 감지하고, 사용자가 대상 디스플레이를 선택할 수 있도록 한다. 선택된 모니터의 전체 영역에 오버레이를 표시한다.
+
+**FUNC-R-07 (Connection Management)**: UDP 패킷 수신 시 자동으로 연결 상태를 업데이트하고, 일정 시간 동안 패킷이 수신되지 않으면 자동으로 연결 해제 상태로 전환한다.
 
 ## 4. 예외 처리 (Error Handling)
 
@@ -80,4 +87,4 @@ sequenceDiagram
 
 **ERR-02 (Permission)**: 센서 접근 권한 거부 시 설정 화면으로 유도하는 다이얼로그를 표시한다.
 
-**ERR-03 (Bind Fail)**: PC에서 포트(50000) 바인딩 실패 시(이미 실행 중 등), "서버 시작 실패" 에러 로그를 남기고 다른 포트 사용을 시도하거나 종료한다.
+**ERR-03 (Bind Fail)**: PC에서 포트(50051) 바인딩 실패 시(이미 실행 중 등), "서버 시작 실패" 에러 로그를 남기고 다른 포트 사용을 시도하거나 종료한다.
