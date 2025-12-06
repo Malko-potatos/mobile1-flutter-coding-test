@@ -53,7 +53,7 @@ final class ReceiverViewModelProvider
   }
 }
 
-String _$receiverViewModelHash() => r'110073a3d99db55caf3490e7d966c9ae22ad85e9';
+String _$receiverViewModelHash() => r'b384bc3e9c6691561564fe5d69e44dabc2dbde77';
 
 /// UDP 패킷 수신 및 연결 상태를 관리하는 ViewModel입니다.
 ///

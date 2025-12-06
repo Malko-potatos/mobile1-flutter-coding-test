@@ -5,6 +5,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:mobile1_flutter_coding_test/domain/models/laser_packet.dart';
 import 'package:mobile1_flutter_coding_test/features/receiver/data/receiver_repository.dart';
+import 'package:mobile1_flutter_coding_test/features/receiver/presentation/viewmodels/pointer_settings_provider.dart';
 
 part 'receiver_viewmodel.freezed.dart';
 part 'receiver_viewmodel.g.dart';
@@ -50,9 +51,6 @@ class ReceiverViewModel extends _$ReceiverViewModel {
 
   /// 연결 타임아웃 시간 (2초간 데이터 없으면 끊김 처리)
   static const Duration _timeoutDuration = Duration(seconds: 2);
-
-  /// 잔상 지속 시간 (밀리초)
-  static const int _trailDurationMs = 500;
 
   /// 잔상 정리 주기 (밀리초)
   static const int _trailCleanupIntervalMs = 50;
@@ -119,6 +117,7 @@ class ReceiverViewModel extends _$ReceiverViewModel {
   /// 잔상 정리 타이머를 시작합니다.
   ///
   /// 주기적으로 오래된 잔상을 제거합니다.
+  /// 설정에서 잔상 지속 시간을 가져와서 사용합니다.
   void _startTrailCleanupTimer() {
     _trailCleanupTimer?.cancel();
     _trailCleanupTimer = Timer.periodic(
@@ -129,9 +128,13 @@ class ReceiverViewModel extends _$ReceiverViewModel {
           return;
         }
 
+        // 설정에서 잔상 지속 시간 가져오기
+        final settings = ref.read(pointerSettingsProvider);
+        final trailDurationMs = settings.trailDurationMs;
+
         final now = DateTime.now().millisecondsSinceEpoch;
         final activeTrails = state.trails
-            .where((trail) => now - trail.timestamp < _trailDurationMs)
+            .where((trail) => now - trail.timestamp < trailDurationMs)
             .toList();
 
         // 잔상이 변경된 경우에만 상태 업데이트

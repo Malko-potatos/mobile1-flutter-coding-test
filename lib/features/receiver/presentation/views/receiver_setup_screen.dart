@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 import 'package:screen_retriever/screen_retriever.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:mobile1_flutter_coding_test/core/connection/connection_state_provider.dart';
-import 'package:mobile1_flutter_coding_test/core/constants/app_constants.dart';
 import 'package:mobile1_flutter_coding_test/core/theme/app_theme.dart';
 import 'package:mobile1_flutter_coding_test/features/receiver/presentation/constants/constants.dart';
 import 'package:mobile1_flutter_coding_test/features/receiver/presentation/viewmodels/receiver_viewmodel.dart';
@@ -160,6 +159,15 @@ class _ReceiverSetupScreenState extends ConsumerState<ReceiverSetupScreen> {
         title: Text(connectionState.receiverConnected
             ? 'Connected!'
             : 'Waiting for Connection...'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              context.push('/receiver/options');
+            },
+            tooltip: 'Pointer Options',
+          ),
+        ],
       ),
       body: Column(
         children: [

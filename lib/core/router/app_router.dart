@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile1_flutter_coding_test/core/connection/connection_state_provider.dart';
+import 'package:mobile1_flutter_coding_test/features/receiver/presentation/views/receiver_options_screen.dart';
 import 'package:mobile1_flutter_coding_test/features/receiver/presentation/views/receiver_screen.dart';
 import 'package:mobile1_flutter_coding_test/features/receiver/presentation/views/receiver_setup_screen.dart';
 import 'package:mobile1_flutter_coding_test/features/sender/presentation/views/sender_control_screen.dart';
@@ -69,6 +70,10 @@ final routerProvider = Provider<GoRouter>((ref) {
               return null; // 리다이렉트 없음
             },
             builder: (context, state) => const ReceiverScreen(),
+          ),
+          GoRoute(
+            path: 'options',
+            builder: (context, state) => const ReceiverOptionsScreen(),
           ),
         ],
       ),

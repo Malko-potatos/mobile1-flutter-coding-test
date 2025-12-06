@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:screen_retriever/screen_retriever.dart';
 import 'package:mobile1_flutter_coding_test/features/receiver/presentation/constants/constants.dart';
+import 'package:mobile1_flutter_coding_test/features/receiver/presentation/viewmodels/pointer_settings_provider.dart';
 import 'package:mobile1_flutter_coding_test/features/receiver/presentation/viewmodels/receiver_viewmodel.dart';
 import 'package:mobile1_flutter_coding_test/features/receiver/presentation/widgets/widgets.dart';
 import 'package:window_manager/window_manager.dart';
@@ -45,7 +46,7 @@ class _ReceiverScreenState extends ConsumerState<ReceiverScreen> {
   Future<void> _setWindowStyle() async {
     // 오버레이 화면에서는 항상 오버레이 스타일 적용
     // (다른 화면에서 원복 시도를 방지하기 위해 매번 재적용)
-    
+
     // 선택된 디스플레이 정보 가져오기 (또는 기본 디스플레이 사용)
     try {
       final displays = await screenRetriever.getAllDisplays();
@@ -53,7 +54,7 @@ class _ReceiverScreenState extends ConsumerState<ReceiverScreen> {
         // 첫 번째 디스플레이를 사용 (또는 선택된 디스플레이가 있다면 그것을 사용)
         final display = displays[0];
         final position = display.visiblePosition ?? Offset.zero;
-        
+
         // 윈도우를 해당 모니터 영역으로 이동 및 크기 조절 (전체화면)
         await windowManager.setBounds(Rect.fromLTWH(
           position.dx,
@@ -66,7 +67,7 @@ class _ReceiverScreenState extends ConsumerState<ReceiverScreen> {
       // 디스플레이 정보를 가져올 수 없는 경우 무시
       debugPrint('Failed to get display info: $e');
     }
-    
+
     await windowManager.setAlwaysOnTop(true);
     await windowManager.setHasShadow(false);
     await windowManager.setBackgroundColor(Colors.transparent);
@@ -78,6 +79,7 @@ class _ReceiverScreenState extends ConsumerState<ReceiverScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(receiverViewModelProvider);
+    final settings = ref.watch(pointerSettingsProvider);
 
     // 연결되었지만 패킷이 아직 없으면 빈 화면 (초기 연결 시)
     final packet = state.packet;
@@ -100,12 +102,13 @@ class _ReceiverScreenState extends ConsumerState<ReceiverScreen> {
           child: LaserPointer(
             packet: packet,
             trails: state.trails,
-            size: ReceiverScreenConstants.pointerSize,
+            size: settings.size,
+            color: settings.color,
             inactiveAlpha: ReceiverScreenConstants.pointerAlpha,
             shadowAlpha: ReceiverScreenConstants.shadowAlpha,
             shadowBlurRadius: ReceiverScreenConstants.shadowBlurRadius,
             shadowSpreadRadius: ReceiverScreenConstants.shadowSpreadRadius,
-            trailDurationMs: ReceiverScreenConstants.trailDurationMs,
+            trailDurationMs: settings.trailDurationMs,
           ),
         ),
       ),

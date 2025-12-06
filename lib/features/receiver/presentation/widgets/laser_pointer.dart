@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:mobile1_flutter_coding_test/core/theme/app_theme.dart';
 import 'package:mobile1_flutter_coding_test/domain/models/laser_packet.dart';
 import 'package:mobile1_flutter_coding_test/features/receiver/presentation/viewmodels/receiver_viewmodel.dart';
 
@@ -16,6 +15,7 @@ class LaserPointer extends StatelessWidget {
     required this.packet,
     required this.trails,
     required this.size,
+    required this.color,
     required this.inactiveAlpha,
     required this.shadowAlpha,
     required this.shadowBlurRadius,
@@ -26,6 +26,7 @@ class LaserPointer extends StatelessWidget {
   final LaserPacket packet;
   final List<LaserTrail> trails;
   final double size;
+  final Color color;
   final double inactiveAlpha;
   final double shadowAlpha;
   final double shadowBlurRadius;
@@ -50,18 +51,17 @@ class LaserPointer extends StatelessWidget {
             return Positioned.fill(
               child: Align(
                 alignment: Alignment(trail.x, trail.y),
-                child: Opacity(
+                  child: Opacity(
                   opacity: alpha * inactiveAlpha, // 잔상은 더 투명하게
                   child: Container(
                     width: size * 0.8, // 잔상은 약간 작게
                     height: size * 0.8,
                     decoration: BoxDecoration(
-                      color: AppTheme.rsupportOrange,
+                      color: color,
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: AppTheme.rsupportOrange
-                              .withValues(alpha: shadowAlpha * alpha),
+                          color: color.withValues(alpha: shadowAlpha * alpha),
                           blurRadius: shadowBlurRadius * 0.7,
                           spreadRadius: shadowSpreadRadius * 0.7,
                         ),
@@ -82,12 +82,12 @@ class LaserPointer extends StatelessWidget {
               height: size,
               decoration: BoxDecoration(
                 color: packet.c
-                    ? AppTheme.rsupportOrange
-                    : AppTheme.rsupportOrange.withValues(alpha: inactiveAlpha),
+                    ? color
+                    : color.withValues(alpha: inactiveAlpha),
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: AppTheme.rsupportOrange.withValues(alpha: shadowAlpha),
+                    color: color.withValues(alpha: shadowAlpha),
                     blurRadius: shadowBlurRadius,
                     spreadRadius: shadowSpreadRadius,
                   ),

@@ -53,7 +53,7 @@ final class SenderViewModelProvider
   }
 }
 
-String _$senderViewModelHash() => r'8ec301896d3434838bf4246ab155266f473f64e0';
+String _$senderViewModelHash() => r'ab20656440e28aef032f97c0b64ec18833050e8e';
 
 /// 센서 데이터 및 UDP 통신을 처리하는 ViewModel입니다.
 ///
