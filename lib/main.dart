@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile1_flutter_coding_test/core/router/app_router.dart';
+import 'package:mobile1_flutter_coding_test/core/theme/app_theme.dart';
 import 'package:window_manager/window_manager.dart';
 
 /// 애플리케이션의 진입점입니다.
@@ -58,11 +59,8 @@ class MobileLaserPointerApp extends ConsumerWidget {
     final router = ref.read(routerProvider);
 
     return MaterialApp.router(
-      title: 'Mobile Laser Pointer',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
+      title: 'Rsupport Laser Pointer',
+      theme: AppTheme.lightTheme,
       routerConfig: router,
     );
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobile1_flutter_coding_test/core/theme/app_theme.dart';
 import 'package:mobile1_flutter_coding_test/domain/models/laser_packet.dart';
 
 /// 레이저 포인터를 렌더링하는 위젯입니다.
@@ -36,12 +37,12 @@ class LaserPointer extends StatelessWidget {
               height: size,
               decoration: BoxDecoration(
                 color: packet.c
-                    ? Colors.red
-                    : Colors.red.withValues(alpha: inactiveAlpha),
+                    ? AppTheme.rsupportOrange
+                    : AppTheme.rsupportOrange.withValues(alpha: inactiveAlpha),
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.red.withValues(alpha: shadowAlpha),
+                    color: AppTheme.rsupportOrange.withValues(alpha: shadowAlpha),
                     blurRadius: shadowBlurRadius,
                     spreadRadius: shadowSpreadRadius,
                   ),

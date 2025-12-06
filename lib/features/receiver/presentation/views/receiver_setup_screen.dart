@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:screen_retriever/screen_retriever.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:mobile1_flutter_coding_test/core/constants/app_constants.dart';
+import 'package:mobile1_flutter_coding_test/core/theme/app_theme.dart';
 import 'package:mobile1_flutter_coding_test/features/receiver/presentation/constants/constants.dart';
 import 'package:mobile1_flutter_coding_test/features/receiver/presentation/viewmodels/receiver_viewmodel.dart';
 import 'package:mobile1_flutter_coding_test/features/receiver/presentation/widgets/widgets.dart';
@@ -177,55 +178,44 @@ class _ReceiverSetupScreenState extends ConsumerState<ReceiverSetupScreen> {
   Widget build(BuildContext context) {
     // 현재 연결 상태 확인
     final receiverState = ref.watch(receiverViewModelProvider);
-    
+
     // [핵심] ViewModel 상태 감지 리스너
     ref.listen(receiverViewModelProvider, (previous, next) {
-      debugPrint('[ReceiverSetupScreen] State changed: prev=${previous?.isConnected}, next=${next.isConnected}');
+      debugPrint(
+          '[ReceiverSetupScreen] State changed: prev=${previous?.isConnected}, next=${next.isConnected}');
       // 연결이 끊겨있다가 -> 연결됨(true) 상태로 바뀌면 오버레이 실행
       final prevConnected = previous?.isConnected ?? false;
       if (!prevConnected && next.isConnected) {
-        debugPrint('[ReceiverSetupScreen] Connection detected, starting overlay');
+        debugPrint(
+            '[ReceiverSetupScreen] Connection detected, starting overlay');
         _startOverlay();
       }
     });
 
     if (_isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(
+            color: AppTheme.rsupportOrange,
+          ),
+        ),
+      );
     }
 
     // 디버깅: 연결 상태 표시
-    debugPrint('[ReceiverSetupScreen] Build: isLoading=$_isLoading, isConnected=${receiverState.isConnected}, hasPacket=${receiverState.packet != null}');
+    debugPrint(
+        '[ReceiverSetupScreen] Build: isLoading=$_isLoading, isConnected=${receiverState.isConnected}, hasPacket=${receiverState.packet != null}');
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(receiverState.isConnected ? 'Connected!' : 'Waiting for Connection...'),
+        title: Text(receiverState.isConnected
+            ? 'Connected!'
+            : 'Waiting for Connection...'),
       ),
       body: Column(
         children: [
           // 연결 상태 표시
-          Container(
-            padding: const EdgeInsets.all(16),
-            color: receiverState.isConnected ? Colors.green.shade100 : Colors.grey.shade200,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  receiverState.isConnected ? Icons.check_circle : Icons.radio_button_unchecked,
-                  color: receiverState.isConnected ? Colors.green : Colors.grey,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  receiverState.isConnected
-                      ? 'Connected (Port: ${AppConstants.port})'
-                      : 'Waiting for connection on port ${AppConstants.port}...',
-                  style: TextStyle(
-                    color: receiverState.isConnected ? Colors.green.shade700 : Colors.grey.shade700,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
+
           Expanded(
             child: Row(
               children: [

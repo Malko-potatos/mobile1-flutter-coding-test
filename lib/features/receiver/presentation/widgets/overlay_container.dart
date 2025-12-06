@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobile1_flutter_coding_test/core/theme/app_theme.dart';
 
 /// 오버레이 컨테이너 위젯입니다.
 ///
@@ -22,7 +23,7 @@ class OverlayContainer extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           border: Border.all(
-            color: Colors.red.withValues(alpha: borderAlpha),
+            color: AppTheme.rsupportOrange.withValues(alpha: borderAlpha),
             width: borderWidth,
           ),
         ),

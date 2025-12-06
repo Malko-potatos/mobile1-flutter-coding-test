@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:screen_retriever/screen_retriever.dart';
+import 'package:mobile1_flutter_coding_test/core/theme/app_theme.dart';
 import 'package:mobile1_flutter_coding_test/features/receiver/presentation/constants/constants.dart';
 
 /// 모니터 선택 드롭다운 위젯입니다.
@@ -24,23 +25,38 @@ class MonitorSelector extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
-            'Select Monitor',
-            style: Theme.of(context).textTheme.titleLarge,
+          Row(
+            children: [
+              Icon(
+                Icons.desktop_windows,
+                color: AppTheme.rsupportNavy,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Select Monitor',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+            ],
           ),
           const SizedBox(height: ReceiverSetupScreenConstants.monitorSelectorSpacing),
-          DropdownButton<Display>(
-            isExpanded: true,
-            value: selectedDisplay,
-            items: displays.asMap().entries.map((entry) {
-              final index = entry.key;
-              final display = entry.value;
-              return DropdownMenuItem(
-                value: display,
-                child: Text('Display${index + 1}'),
-              );
-            }).toList(),
-            onChanged: onDisplayChanged,
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12.0),
+              child: DropdownButton<Display>(
+                isExpanded: true,
+                value: selectedDisplay,
+                items: displays.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final display = entry.value;
+                  return DropdownMenuItem(
+                    value: display,
+                    child: Text('Display${index + 1}'),
+                  );
+                }).toList(),
+                onChanged: onDisplayChanged,
+                underline: const SizedBox.shrink(),
+              ),
+            ),
           ),
         ],
       ),

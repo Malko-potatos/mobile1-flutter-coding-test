@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:screen_retriever/screen_retriever.dart';
@@ -96,7 +97,10 @@ class _ReceiverScreenState extends ConsumerState<ReceiverScreen> {
   ///
   /// 윈도우 설정을 원복한 후 다음 이벤트 루프에 설정 화면으로 이동합니다.
   void _handleDisconnection() {
-    if (!mounted) return;
+    if (!mounted) {
+      _isDisconnecting = false;
+      return;
+    }
     
     // Navigator가 locked 상태일 수 있으므로 충분한 지연 후 navigation 수행
     _restoreWindowStyle().then((_) {
@@ -105,36 +109,50 @@ class _ReceiverScreenState extends ConsumerState<ReceiverScreen> {
         return;
       }
       
+      // 여러 프레임과 긴 지연을 두어 Navigator가 완전히 unlock될 때까지 대기
       // 첫 번째 프레임 대기
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+      SchedulerBinding.instance.addPostFrameCallback((_) {
         if (!mounted) {
           _isDisconnecting = false;
           return;
         }
         
-        // 두 번째 프레임까지 대기 (Navigator가 완전히 unlock될 때까지)
-        WidgetsBinding.instance.addPostFrameCallback((_) {
+        // 두 번째 프레임까지 대기
+        SchedulerBinding.instance.addPostFrameCallback((_) {
           if (!mounted) {
             _isDisconnecting = false;
             return;
           }
           
-          // 추가 지연을 두어 Navigator가 완전히 준비될 때까지 대기
-          Future.delayed(const Duration(milliseconds: 100), () {
+          // 세 번째 프레임까지 대기
+          SchedulerBinding.instance.addPostFrameCallback((_) {
             if (!mounted) {
               _isDisconnecting = false;
               return;
             }
             
-            try {
-              final navigatorContext = context;
-              navigatorContext.go('/receiver');
-              _isDisconnecting = false;
-            } catch (e) {
-              // Navigation 실패 시 무시 (이미 다른 화면으로 이동했을 수 있음)
-              debugPrint('Navigation error during disconnection: $e');
-              _isDisconnecting = false;
-            }
+            // 최종 긴 지연 (Navigator가 완전히 준비될 때까지)
+            Future.delayed(const Duration(milliseconds: 300), () {
+              if (!mounted) {
+                _isDisconnecting = false;
+                return;
+              }
+              
+              try {
+                // GoRouter를 직접 사용하여 더 안전하게 navigation
+                final router = GoRouter.of(context);
+                // 현재 경로 확인하여 중복 navigation 방지
+                final currentLocation = router.routerDelegate.currentConfiguration.uri.path;
+                if (currentLocation != '/receiver') {
+                  router.go('/receiver');
+                }
+                _isDisconnecting = false;
+              } catch (e) {
+                // Navigation 실패 시 무시 (이미 다른 화면으로 이동했을 수 있음)
+                debugPrint('Navigation error during disconnection: $e');
+                _isDisconnecting = false;
+              }
+            });
           });
         });
       });
@@ -146,20 +164,26 @@ class _ReceiverScreenState extends ConsumerState<ReceiverScreen> {
     final state = ref.watch(receiverViewModelProvider);
 
     // [핵심] 연결 끊김 감지 리스너
-    // ref.listen은 build 중에 호출될 수 있으므로, navigation은 별도로 처리
-    ref.listen(receiverViewModelProvider, (previous, next) {
-      final wasConnected = previous?.isConnected ?? false;
-      final isConnected = next.isConnected;
-      
-      // 연결이 끊겼고, 아직 처리 중이 아니면 처리 시작
-      if (wasConnected && !isConnected && !_isDisconnecting) {
-        _isDisconnecting = true;
-        // build 메서드가 완전히 끝난 후에 처리
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _handleDisconnection();
-        });
-      }
-    });
+    // ref.listenManual을 사용하여 build 중에 navigation을 시도하지 않도록 함
+    ref.listenManual(
+      receiverViewModelProvider,
+      (previous, next) {
+        final wasConnected = previous?.isConnected ?? false;
+        final isConnected = next.isConnected;
+        
+        // 연결이 끊겼고, 아직 처리 중이 아니면 처리 시작
+        if (wasConnected && !isConnected && !_isDisconnecting) {
+          _isDisconnecting = true;
+          // build 메서드가 완전히 끝난 후에 처리
+          // 여러 프레임을 기다려 Navigator가 완전히 unlock될 때까지 대기
+          SchedulerBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              _handleDisconnection();
+            }
+          });
+        }
+      },
+    );
 
     // 연결되었지만 패킷이 아직 없으면 빈 화면 (초기 연결 시)
     final packet = state.packet;

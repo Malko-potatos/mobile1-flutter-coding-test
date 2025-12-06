@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobile1_flutter_coding_test/core/theme/app_theme.dart';
 
 /// IP 주소를 표시하는 위젯입니다.
 class IpDisplay extends StatelessWidget {
@@ -12,10 +13,25 @@ class IpDisplay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      'My IP: $ipAddress',
-      textAlign: TextAlign.center,
-      style: const TextStyle(color: Colors.grey),
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.wifi,
+              color: AppTheme.rsupportOrange,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'My IP: $ipAddress',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
