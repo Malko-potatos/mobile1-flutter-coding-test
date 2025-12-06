@@ -9,6 +9,7 @@ import 'package:mobile1_flutter_coding_test/core/connection/connection_state_pro
 import 'package:mobile1_flutter_coding_test/core/theme/app_theme.dart';
 import 'package:mobile1_flutter_coding_test/features/receiver/presentation/constants/constants.dart';
 import 'package:mobile1_flutter_coding_test/features/receiver/presentation/viewmodels/receiver_viewmodel.dart';
+import 'package:mobile1_flutter_coding_test/features/receiver/presentation/viewmodels/selected_display_provider.dart';
 import 'package:mobile1_flutter_coding_test/features/receiver/presentation/widgets/widgets.dart';
 
 class ReceiverSetupScreen extends ConsumerStatefulWidget {
@@ -102,12 +103,17 @@ class _ReceiverSetupScreenState extends ConsumerState<ReceiverSetupScreen> {
     }
 
     if (mounted) {
+      final initialDisplay = displays.isNotEmpty ? displays[0] : null;
       setState(() {
         _ipAddress = ip ?? 'Unknown IP';
         _displays = displays;
-        _selectedDisplay = displays.isNotEmpty ? displays[0] : null;
+        _selectedDisplay = initialDisplay;
         _isLoading = false;
       });
+      // 초기 선택된 디스플레이를 전역 상태에 저장
+      if (initialDisplay != null) {
+        ref.read(selectedDisplayProvider.notifier).setDisplay(initialDisplay);
+      }
     }
   }
 
@@ -192,6 +198,10 @@ class _ReceiverSetupScreenState extends ConsumerState<ReceiverSetupScreen> {
                       setState(() {
                         _selectedDisplay = value;
                       });
+                      // 전역 상태에도 업데이트
+                      ref
+                          .read(selectedDisplayProvider.notifier)
+                          .setDisplay(value);
                     },
                   ),
                 ),
