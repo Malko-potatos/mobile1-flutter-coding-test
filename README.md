@@ -1,80 +1,67 @@
-# RSUPPORT mobile1 flutter developer test
+# Mobile Laser Pointer (Rsupport Assignment)
 
-    알서포트 코딩 테스트 참여에 감사 드립니다.
-    본 테스트는 지원자의 개발 및 협업 역량을 예측하기 위하여 진행합니다.
-    요구 사항을 만족하는 코드를 작성해 주세요.
-    작성된 코드는 인터뷰에 활용됩니다.
+모바일 기기(Android/iOS)의 센서를 이용하여 PC(Windows/macOS) 화면의 포인터를 제어하는 **원격 레이저 포인터 애플리케이션**입니다.
 
-# 요구 사항
-1. 과제 중 하나를 선택합니다.
-2. 주어진 요구사항/제약사항을 만족하는 flutter 앱을 작성합니다.
-3. 앱 작성을 완료한 후, Pull Request 생성합니다.
-4. PR 링크 첨부하여 담당자 메일(recruit@rsupport.com)로 회신합니다.
-5. 질문은 kimss@rsupport.com 으로 메일 보내주십시오. 확인이 되면 가급적 바로 회신하겠습니다.
+> **플랫폼 지원:** 모바일(Android/iOS), PC(Windows/macOS)만 지원하며, 웹(Web) 플랫폼은 지원하지 않습니다.
 
-## PR 작성시
-1. 동작영상과 스크린샷을 첨부해주세요.
-2. flutter 와 라이브러리는 최신 버전을 사용해 주세요. - 예외시 사유 기입 -
-3. 구현 중점 사항을 간단하게 기입해 주세요.
+## 목차 (Table of Contents)
 
+- [Architecture & Tech Stack](#architecture--tech-stack)
+- [요구사항 문서](#요구사항-문서)
+- [기능 명세서](#기능-명세서)
 
-# 과제 설명
-회사의 관련 기술 탐색을 주제로 과제를 선정했습니다.
-지원자께서는 원하는 주제 하나를 선정후 과제 진행을 바랍니다.
-문제 해결 능력을 검증하는 절차라고 생각해주세요.
+---
 
-과제 목록에 대한 안내입니다.
-- 활용 수단은 명확하게 금지하는 항목이 아니면 모두 허용 됩니다.
-- 과제를 완료하지 않아도 무관합니다. 문제를 해결하는 과정과 그때 그때의 결과 공유가 중요하니 도전적인 과제로 진행하시는 것도 좋습니다.
-권장하는 방법으로는 git commit 을 활용하는 것입니다.
-차곡 차곡 commit 해주시고, 만약 AI 를 사용하셨다면 프롬프트는 git message 에 담아주세요.
-다른 방법으로 정리하셔도 괜찮습니다.
+## Architecture & Tech Stack
 
-참고로, 면접시 코드리뷰 및 시연하는 과정이 있습니다. 작성한 코드(AI 생성분 포함)와 실행에 필요한 설정(md 등)을 모두 push하여 원활한 시연이 가능하도록 준비해 주시기 바랍니다.
-아래는 과제 목록입니다. 하나를 선정하시어 진행 부탁 드립니다.
+유지보수성과 확장성을 고려하여 **Feature-First MVVM + Repository** 패턴을 적용했습니다.
 
-### 내장 카메라앱 클론
+### Tech Stack
+- **Framework:** Flutter 3.x
+- **State Management:** **Riverpod** (비동기 스트림 처리 및 DI)
+- **Routing:** **GoRouter** (플랫폼별 자동 분기 처리)
+- **Network:** UDP (Low Latency Data Transmission)
+- **Platform Control:** `window_manager` (Desktop), `sensors_plus` (Mobile)
 
-- 카메라 기능
-    - 전면/후면 카메라 프리뷰 비율대로 표시되어야 합니다.
-- 회전 대응
-    - 시스템 상태는 회전 반영이 되어야 합니다. 시스템 상태바의 위치로 확인 가능합니다.
-    - 앱 UI 레이아웃은 고정되어야 합니다. 단, **셔터 버튼, 설정 아이콘 등**의 UI 요소는 기기 방향에 맞춰 **애니메이션으로 회전**해야 합니다.
+### Architecture Overview
+```mermaid
+graph LR
+    subgraph Mobile [Mobile Sender]
+        S[Sensor Stream] -->|Filter| VM_S[Sender VM]
+        VM_S -->|Data| Repo_S[UDP Repository]
+    end
 
-### 핑거프린팅 생성
+    Repo_S -.->|Network| Repo_R
 
-- 각 플랫폼별 핑거프린팅 Data를 생성합니다. 가급적 기기를 식별할 수 있는 데이터가 필요하지만, 불가피한 경우 다른 수단을 활용해주세요.
-- 데이터는 해쉬 처리해야 합니다.
-- 관련 pub.dev 패키지(예: device_info_plus)를 사용하지 않고, MethodChannel을 직접 구현하여 네이티브 코드를 호출하는 것을 권장합니다.
+    subgraph Desktop [PC Receiver]
+        Repo_R[UDP Repository] -->|Stream| VM_R[Receiver VM]
+        VM_R -->|State| UI[Transparent Window]
+    end
+```
 
-### Windows/MacOS 커스텀 파일 피커 with 팝업
+#### Story 1: 프로젝트 기반 및 아키텍처 수립
 
-- 시스템 파일 Picker 혹은 [pub.dev](http://pub.dev) 패키지를 사용하지 않습니다.
-- 메인 윈도에서 버튼을 통해 별도 피커창을 열어야 합니다.
-- 피커앱과 메인앱을 별도로 구현하면 안됩니다. 하나의 앱 안에서 동작해야 합니다.
+프로젝트에 적합한 아키텍처 수립 및 프로젝트 셋팅 
 
-### AirPlay 구현
+##### Check List 
 
-- Android 테블릿을 MacOS 의 디스플레이로 활용합니다.
-- 오픈소스 활용 권장합니다.
+[V] 핵심 패키지 선정 및 추가 (Riverpod, GoRouter, Sensors, WindowManager)
 
-(참고: AirPlay 프로토콜 전체 구현이 아닌, 기존 오픈소스 리시버를 플러터에 연동하거나 관련 스트림을 처리하는 과정에 중점을 둡니다.)
+[V] Feature-First 폴더 구조(Core, Domain, Features) 세팅
 
-### 모바일 레이저포인터
+[ ] GoRouter를 활용한 플랫폼별(Mobile vs Desktop) 진입점 분기 구현
 
-- 모바일앱
-    - 모바일 센서를 이용하여 PC 에 레이저 커서 데이터 전송
-- PC앱 (Flutter Desktop 권장)
-    - 모바일로부터 받은 데이터를 PC 화면에 빨간 점으로 표시
-    - PC앱 창 내부가 아닌, 다른 프로그램 위에 표시되어야 합니다.
+---
 
-### 카메라 뷰 인물을 항상 가운데 노출
+## 요구사항 문서
 
-- 카메라 프레임 내에서 인물(피사체)이 좌우 어느 한쪽에 치우쳐 있더라도, 렌더링 되는 뷰에서는 해당 인물이 **항상 중앙에 위치하도록** 실시간으로 보정
+프로젝트의 비즈니스 및 사용자 요구사항은 다음 문서를 참고하세요:
 
-### PC 사운드 출력 모바일로 전송
+- [📋 Requirements Specification (요구사항 정의서)](doc/REQUIREMENTS.md)
 
-- PC 에 가상의 사운드 출력 장치를 만듭니다.
-- PC 사운드는 모바일의 스피커나 모바일에 연결된 블루투스 장치를 통해 출력됩니다.
+## 기능 명세서
 
-(참고: 가상 사운드 드라이버(예: VB-Cable)를 활용하고, 캡처된 오디오 스트림을 모바일로 전송하는 네트워크 프로토콜 구현에 중점을 둡니다.)
+프로젝트의 상세 기능 명세는 다음 문서를 참고하세요:
+
+- [⚙️ Functional Specifications (기능 명세서)](doc/FUNCTIONAL_SPEC.md)
+
